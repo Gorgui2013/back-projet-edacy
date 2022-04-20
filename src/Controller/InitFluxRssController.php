@@ -6,6 +6,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 use App\Entity\Media;
 use App\Entity\Article;
 use App\Repository\ArticleRepository;
@@ -22,9 +27,17 @@ class InitFluxRssController extends AbstractController
     // champ de récupération du repositorie de l'entité Article
     private $_q;
 
+    //
+    private $_serializer;
+    private $_normalizer;
+    private $_encoder;
+
     // Contructeur avec initialisation de l'entity manager
     public function __construct(ArticleRepository $q) {
         $this->_q = $q;
+        $this->_normalizer = new ObjectNormalizer();
+        $this->_encoder = new JsonEncoder();
+        $this->_serializer = new Serializer([new DateTimeNormalizer(), $this->_normalizer], [$this->_encoder]);
     }
 
     /**
@@ -32,13 +45,14 @@ class InitFluxRssController extends AbstractController
      */
     public function index(): Response
     {
-        try {
-            $this->chargement();
-        } catch (Exception $e) {
-            return new Response('Error'. $e);
-        }
+        $this->chargement();
+         $resp = $this->_serializer->serialize(['message' => 'Chargement faite avec succé'], 'json', [
+            'circular_reference_handler' => function ($object) {
+                return $object->getId();
+            }
+        ]);
 
-        return new Response('Chargement faite avec succé');
+        return new Response($resp, 200);
     }
 
     // fonction de chargement de tous les articles en appelant addArticle();
