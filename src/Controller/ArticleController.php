@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use App\Entity\Article;
@@ -28,8 +29,9 @@ class ArticleController extends AbstractController
         $this->_q = $q;
         $this->_normalizer = new ObjectNormalizer();
         $this->_encoder = new JsonEncoder();
-        $this->_serializer = new Serializer([$this->_normalizer], [$this->_encoder]);
+        $this->_serializer = new Serializer([new DateTimeNormalizer(), $this->_normalizer], [$this->_encoder]);
     }
+
     /**
      * @Route("/api/articles", methods={"GET"})
      */
@@ -41,8 +43,9 @@ class ArticleController extends AbstractController
             }
         ]);
 
-        return new Response($articles, 200, ['Content-Type' => 'application/json']);
+        return new Response($articles, 200);
     }
+
     /**
      * @Route("/api/articles/{id}", methods={"GET", "PATCH"})
      */
@@ -51,7 +54,7 @@ class ArticleController extends AbstractController
         // Récupération de la methode pour l'execution de la tache correspondante
         switch($request->getMethod()) {
             case "GET" : {
-                $article = $this->_q->findById($id);
+                $article = $this->_q->findOneBy(["id" => $id]);
                 if(!$article) {
                     return new Response('Not found.', Response::HTTP_NOT_FOUND);
                 }
@@ -75,6 +78,6 @@ class ArticleController extends AbstractController
             }
         ]);
 
-        return new Response($jsonArticle, 200, ['Content-Type' => 'application/json']);
+        return new Response($jsonArticle, 200);
     }
 }
