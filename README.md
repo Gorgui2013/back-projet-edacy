@@ -3,7 +3,7 @@
 ## Prérequis :
 **Vous devez avoir [Composer](https://getcomposer.org/download/), [Symfony CLI](https://symfony.com/download) et un serveur local [WampServer](https://www.wampserver.com/en/download-wampserver-64bits/) installés sur votre poste.**
 
-## le procédure d'installation
+## Procédure d'installation
 
 1. **Démarer votre serveur local**
 
